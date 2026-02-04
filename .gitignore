@@ -1,0 +1,57 @@
+# Ignore OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Ignore WordPress core files (if any)
+# We are only ignoring the plugin directory, so we don't need to worry about this.
+
+# Ignore node_modules
+node_modules/
+
+# Ignore vendor directory (for Composer)
+vendor/
+
+# Ignore IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Ignore log files
+*.log
+
+# Ignore system files
+*.DS_Store
+
+# Ignore uploaded media (if any in the plugin)
+uploads/
+
+# Ignore ACF Pro license (if any)
+acf-license/
+
+# Ignore local configuration files
+wp-config-local.php
+.env
+
+# Ignore debug log
+debug.log
+
+# Ignore any built files (if you have a build process)
+dist/
+build/
+
+# Ignore package locks
+package-lock.json
+yarn.lock
+
+# Ignore Composer lock
+composer.lock
+
+# Ignore any temporary files
+tmp/
+temp/
