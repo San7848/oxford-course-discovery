@@ -5,6 +5,7 @@
  */
 
 get_header(); ?>
+<link rel="stylesheet" href="https://oxford-university.ct.ws/wp-content/plugins/oxford-course-discovery/assets/css/frontend.css" type="text/css" media="all">
 
 <div class="wrap">
     <div id="primary" class="content-area">
