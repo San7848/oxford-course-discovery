@@ -58,55 +58,22 @@ class Oxford_Provider_Filter extends Oxford_Base_Filter {
 
 // Location Filter
 class Oxford_Location_Filter extends Oxford_Base_Filter {
-    public function __construct() {
-        $this->name = 'location';
-        $this->label = 'Locations';
-    }
-    
     public function apply(array $args, $value) {
-        if (!empty($value) && is_array($value)) {
-            $locations = array_map('sanitize_text_field', $value);
-            
-            // Get provider IDs with these locations
-            $provider_ids = $this->get_providers_by_location($locations);
-            
-            if (!empty($provider_ids)) {
-                $args['meta_query'][] = [
-                    'key' => 'providers',
-                    'value' => $provider_ids,
-                    'compare' => 'IN',
-                    'type' => 'NUMERIC'
-                ];
-            }
+        if (!empty($value)) {
+            $args['meta_query'][] = [
+                'key' => 'location',
+                'value' => is_array($value) ? implode(',', $value) : $value,
+                'compare' => 'LIKE'
+            ];
         }
         return $args;
     }
-    
-    private function get_providers_by_location($locations) {
-        $args = [
-            'post_type' => 'provider',
-            'posts_per_page' => -1,
-            'meta_query' => [
-                [
-                    'key' => 'location',
-                    'value' => $locations,
-                    'compare' => 'IN'
-                ]
-            ],
-            'fields' => 'ids'
-        ];
-        
-        return get_posts($args);
-    }
 }
+
+
 
 // Date Filter
 class Oxford_Date_Filter extends Oxford_Base_Filter {
-    public function __construct() {
-        $this->name = 'start_date';
-        $this->label = 'Start Dates';
-    }
-
     public function apply(array $args, $value) {
         if (!empty($value) && is_array($value)) {
             $args['meta_query'][] = [
@@ -118,6 +85,7 @@ class Oxford_Date_Filter extends Oxford_Base_Filter {
         return $args;
     }
 }
+
 
 
 // Category Filter
@@ -161,44 +129,37 @@ class Oxford_Filter_Manager {
     }
     
     public function apply_filters($filters_data) {
-        $args = [
-            'post_type' => 'course',
-            'posts_per_page' => -1,
-            'meta_query' => [],
-            'tax_query' => [],
-        ];
+    $args = [
+        'post_type' => 'course',
+        'posts_per_page' => -1,
+        'meta_query' => ['relation' => 'AND'],
+        'tax_query' => [],
+    ];
 
-        /* -------- FIXED SEARCH (MBA) -------- */
-        if (!empty($filters_data['text_search'])) {
-            $search = sanitize_text_field($filters_data['text_search']);
-
-            $args['meta_query'][] = [
-                'key' => 'course_title',
-                'value' => $search,
-                'compare' => 'LIKE'
-            ];
-        }
-
-        /* -------- OTHER FILTERS -------- */
-        foreach ($filters_data as $filter_name => $filter_value) {
-            if (isset($this->filters[$filter_name]) && !empty($filter_value)) {
-                $args = $this->filters[$filter_name]->apply($args, $filter_value);
-            }
-        }
-
-        /* -------- CLEANUP -------- */
-        if (!empty($args['meta_query'])) {
-            $args['meta_query']['relation'] = 'AND';
-        } else {
-            unset($args['meta_query']);
-        }
-
-        if (empty($args['tax_query'])) {
-            unset($args['tax_query']);
-        }
-
-        return $args;
+    // Text search
+    if (!empty($filters_data['text_search'])) {
+        $args['s'] = sanitize_text_field($filters_data['text_search']);
     }
+
+    // Apply other filters
+    foreach ($filters_data as $filter_name => $filter_value) {
+        if (isset($this->filters[$filter_name]) && !empty($filter_value)) {
+            $args = $this->filters[$filter_name]->apply($args, $filter_value);
+        }
+    }
+
+    // Cleanup
+    if (count($args['meta_query']) === 1) {
+        unset($args['meta_query']);
+    }
+
+    if (empty($args['tax_query'])) {
+        unset($args['tax_query']);
+    }
+
+    return $args;
+}
+
     
     public function get_filter($name) {
         return $this->filters[$name] ?? null;
