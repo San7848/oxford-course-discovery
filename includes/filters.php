@@ -106,35 +106,19 @@ class Oxford_Date_Filter extends Oxford_Base_Filter {
         $this->name = 'start_date';
         $this->label = 'Start Dates';
     }
-    
+
     public function apply(array $args, $value) {
         if (!empty($value) && is_array($value)) {
-            global $wpdb;
-            $table_name = $wpdb->prefix . 'oxford_course_dates';
-            
-            $dates = array_map('sanitize_text_field', $value);
-            $placeholders = implode(',', array_fill(0, count($dates), '%s'));
-            
-            $query = $wpdb->prepare(
-                "SELECT DISTINCT course_id FROM $table_name WHERE month_year IN ($placeholders)",
-                $dates
-            );
-            
-            $course_ids = $wpdb->get_col($query);
-            
-            if (!empty($course_ids)) {
-                $args['post__in'] = array_merge(
-                    $args['post__in'] ?? [],
-                    $course_ids
-                );
-            } else {
-                // Return no results if no courses match dates
-                $args['post__in'] = [0];
-            }
+            $args['meta_query'][] = [
+                'key' => 'start_date',
+                'value' => $value,
+                'compare' => 'IN'
+            ];
         }
         return $args;
     }
 }
+
 
 // Category Filter
 class Oxford_Category_Filter extends Oxford_Base_Filter {
