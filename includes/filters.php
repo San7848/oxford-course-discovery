@@ -180,21 +180,39 @@ class Oxford_Filter_Manager {
         $args = [
             'post_type' => 'course',
             'posts_per_page' => -1,
-            'meta_query' => ['relation' => 'AND']
+            'meta_query' => [],
+            'tax_query' => [],
         ];
-        
-        // Apply AND logic between different filter types
+
+        /* -------- FIXED SEARCH (MBA) -------- */
+        if (!empty($filters_data['text_search'])) {
+            $search = sanitize_text_field($filters_data['text_search']);
+
+            $args['meta_query'][] = [
+                'key' => 'course_title',
+                'value' => $search,
+                'compare' => 'LIKE'
+            ];
+        }
+
+        /* -------- OTHER FILTERS -------- */
         foreach ($filters_data as $filter_name => $filter_value) {
             if (isset($this->filters[$filter_name]) && !empty($filter_value)) {
                 $args = $this->filters[$filter_name]->apply($args, $filter_value);
             }
         }
-        
-        // Clean up meta query if empty
-        if (empty($args['meta_query'])) {
+
+        /* -------- CLEANUP -------- */
+        if (!empty($args['meta_query'])) {
+            $args['meta_query']['relation'] = 'AND';
+        } else {
             unset($args['meta_query']);
         }
-        
+
+        if (empty($args['tax_query'])) {
+            unset($args['tax_query']);
+        }
+
         return $args;
     }
     
@@ -206,6 +224,7 @@ class Oxford_Filter_Manager {
         return $this->filters;
     }
 }
+
 
 // Initialize filter system
 add_action('init', 'oxford_init_filter_system');
